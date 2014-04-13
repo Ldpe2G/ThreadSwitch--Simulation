@@ -5,6 +5,7 @@ using namespace std;
 
 Simulator* simulator;
 
+//线程要执行的函数
 void ThreadTest(int which){
     for(int i = 0; i < which; i++) {
 		std::cout << "*** thread " << simulator->currentThread->getName() << " looped " << i << " times\n";

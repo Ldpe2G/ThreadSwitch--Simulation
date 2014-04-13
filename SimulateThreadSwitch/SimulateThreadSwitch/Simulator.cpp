@@ -39,24 +39,20 @@ void Simulator::Run (Thread *nextThread, bool finishing){
 		 toBeDestroyed = oldThread;
     }
     
-    oldThread->CheckOverflow();		    // check if the old thread
-					    // had an undetected stack overflow
+    oldThread->CheckOverflow();		   
 
-    this->currentThread = nextThread;  // switch to the next thread
+	// switch to the next thread
+    this->currentThread = nextThread;  
   
-    // This is a machine-dependent assembly language routine defined 
-    // in switch.s.  You may have to think
-    // a bit to figure out what happens after this, both from the point
-    // of view of the thread and from the perspective of the "outside world".	
-	//if(oldThread != nextThread)		/* Liang DePeng + */
+    
 	SWITCH(oldThread, nextThread);
-    // we're back, running oldThread
+
+    // 这里是oldThread在运行
 	
-    CheckToBeDestroyed();		// check if thread we were running
-					// before this one has finished
-					// and needs to be cleaned up
+    CheckToBeDestroyed();		
 }
 
+//检测有没有线程需要销毁
 void Simulator::CheckToBeDestroyed(){
     if (toBeDestroyed != NULL) {
         delete toBeDestroyed;

@@ -3,7 +3,6 @@
 #include <assert.h>
 
 Thread::Thread(char* threadName){
-    
 	name = threadName;
 	stackTop = NULL;
     stack = NULL;
@@ -18,13 +17,14 @@ Thread::~Thread(){
 		delete [] stack;
 }
 
-
+//分配栈空间，然后初始化栈和machineState数组
 void Thread::Fork(VoidFunctionPtr func, void *arg){
     StackAllocate(func, arg);
     simulator->ReadyToRun(this);	
 }    
 
-// this is put at the top of the execution stack, for detecting stack overflows
+// this is put at the top of the execution stack, 
+// for detecting stack overflows
 const int STACK_FENCEPOST = 0xdedbeef;
 
 void Thread::CheckOverflow(){
@@ -33,19 +33,20 @@ void Thread::CheckOverflow(){
    }
 }
 
-
+//当该线程将要执行的时候，首先检测之前的线程结束了没有
 void Thread::Begin (){
     assert(this == simulator->currentThread);
     simulator->CheckToBeDestroyed();
 }
 
 void Thread::Finish (){
-   
     assert(this == simulator->currentThread);
     Ssleep(true);				
 }
 
-
+//当该函数被调用的时候，该线程放弃CPU，
+//接着从队列中找出下一个要运行的线程，
+//然后该线程放入就绪队列
 void Thread::yield (){
     Thread *nextThread;
 	
@@ -59,21 +60,25 @@ void Thread::yield (){
     }
 }
 
+
 void Thread::Ssleep (bool finishing){
 
     Thread *nextThread;
 
 	while ((nextThread = simulator->FindNextToRun()) == NULL){}
 
-    // returns when it's time for us to run
     simulator->Run(nextThread, finishing); 
 }
 
+//分配和初始化栈空间，
+// func 是线程要执行的函数
+// arg  是函数的参数
 void Thread::StackAllocate(VoidFunctionPtr func, void *arg){
 
     stack = (int *) new char[StackSize * sizeof(int)];
 
-    stackTop = stack + StackSize - 4;	// -4 to be on the safe side!
+	//stackTop指向栈顶，-4是确保安全
+    stackTop = stack + StackSize - 4;
 	stackTop --;
     *stack = STACK_FENCEPOST;
 
@@ -102,7 +107,7 @@ extern "C" {
 		simulator->currentThread->Finish();
 	}
 
-	unsigned long _eax_save = 0;                          //全局中间变量
+	unsigned long _eax_save = 0;  //全局中间变量
 
 	void SWITCH(Thread *oldThread, Thread *newThread){
 
@@ -137,9 +142,9 @@ extern "C" {
 			mov    ebx,[_EBX+eax]  /* 恢复newThread保存的寄存器值 */
 			mov    ecx,[_ECX+eax]
 			mov    edx,[_EDX+eax]
-			mov    IniArg,edx      //
+			mov    IniArg,edx      // 将线程函数参数保存到全局变量
 			mov    esi,[_ESI+eax]
-			mov    Func,esi        //
+			mov    Func,esi        // 保存线程函数地址
 			mov    edi,[_EDI+eax]
 			mov    ebp,[_EBP+eax]
 			mov    esp,[_ESP+eax]  //恢复栈指针
